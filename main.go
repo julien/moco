@@ -20,11 +20,10 @@ type mockResponse struct {
 }
 
 var (
-	fileFlag      string
-	portFlag      int
-	responsesFile *os.File
-	routes        map[string]mockResponse
-	watcher       *fsnotify.Watcher
+	fileFlag string
+	portFlag int
+	routes   map[string]mockResponse
+	watcher  *fsnotify.Watcher
 )
 
 func init() {
@@ -40,7 +39,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	mapResponses()
+	var err error
+	routes, err = mapResponses(fileFlag)
+	if err != nil {
+		fmt.Println("Unable to parse JSON file")
+		os.Exit(1)
+	}
+
 	go createWatcher()
 
 	// Start server
@@ -49,30 +54,36 @@ func main() {
 	http.ListenAndServe(":"+strconv.Itoa(portFlag), nil)
 }
 
-func mapResponses() {
-	responsesFile, err := getFile(fileFlag)
+func mapResponses(file string) (map[string]mockResponse, error) {
+	f, err := getFile(file)
 	if err != nil {
 		fmt.Println("Error reading file", err)
+		return nil, err
 	}
 
-	fileContents := readFile(responsesFile)
+	c := readFile(f)
 
-	routes = make(map[string]mockResponse, 0)
-	if err := json.Unmarshal([]byte(strings.Join(fileContents, "")), &routes); err != nil {
+	m := make(map[string]mockResponse, 0)
+	if err := json.Unmarshal([]byte(strings.Join(c, "")), &m); err != nil {
 		fmt.Printf("Error parsing JSON: %v", err)
+		return nil, err
 	}
+
+	return m, err
 }
 
-func createWatcher() {
+func createWatcher() (*fsnotify.Watcher, error) {
 	var err error
 	watcher, err = fsnotify.NewWatcher()
 	if err != nil {
 		fmt.Printf("Watcher create error %s\n", err)
+		return nil, err
 	}
 	defer watcher.Close()
 
 	if err = watcher.Add(fileFlag); err != nil {
 		fmt.Printf("Watcher add error %s\n", err)
+		return nil, err
 	}
 
 	for {
@@ -80,12 +91,16 @@ func createWatcher() {
 		case ev := <-watcher.Events:
 			if ev.Op&fsnotify.Write == fsnotify.Write {
 				fmt.Printf("JSON file changed: %s\n", ev.Name)
-				mapResponses()
+
+				routes, _ = mapResponses(fileFlag)
+
 			}
 		case err := <-watcher.Errors:
 			fmt.Printf("Watch error %s:\n", err)
 		}
 	}
+
+	return watcher, nil
 }
 
 func getFile(path string) (*os.File, error) {
@@ -130,7 +145,7 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 	if mr, ok := routes[r.URL.Path]; ok {
 
 		if mr.Body == nil {
-			http.Error(w, "No response body defined for this request", 1)
+			http.Error(w, "No response body defined for this request", http.StatusBadRequest)
 			return
 		}
 

@@ -23,5 +23,11 @@
       "message": "Created",
       "data": {"user": "anonymous"}
     }
+  },
+  "/api/error": {
+    "headers": {
+      "Content-Type": "text/html"
+    },
+    "statusCode": 500
   }
 }

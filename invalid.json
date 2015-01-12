@@ -1,0 +1,14 @@
+{
+  "/api/1": {
+    "headers": {
+      "Content-type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "X-Requested-With"
+    },
+    "statusCode": 200,
+    "body" {
+      "name": "Something",
+      "data": [1, 2, 3, 4, 5, 6]
+    }
+  }
+}
