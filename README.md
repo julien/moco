@@ -51,6 +51,10 @@ The json file should respect this structure:
 The only required field is the `body` but you can add headers and
 use custom status codes if you want to.
 
+*NOTE*
+
+This is a work in progress, which means you shouldn't expect too much for now
+
 *If you're using [mocko](https://github.com/julien/mocko),
  note that this version uses less than 1/10th of RAM and does the same thing.*
 
