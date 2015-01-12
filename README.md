@@ -1,59 +1,66 @@
 moco
 ----
 
-moco(s) means "snot" in spanish, and this is
+*mocos* means "snot" in spanish, and this is
 what you can probably expect from this code.
 
-moco let's you "mock" http requests easily,
-you just need to pass a json file to the progam.
+**moco** let's you "mock" http requests easily, you just need to pass a json file to the progam.
 
 `moco -f FILENAME [-p PORT]`
+
 
 The `-f` flag is mandatory and the `-p` flag is optional.
 
 The json file should respect this structure:
 
+*example*
+
 ```
 {
-  "/api/1": {
-
+  "/api/foo": {
     "headers": {
       "Content-type": "application/json",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Headers": "X-Requested-With"
     },
-
     "statusCode": 200,
-
     "body": {
-      "name": "Something",
-      "data": [1, 2, 3, 4, 5]
+      title: "Some cool stuff",
+      items: ["apple", "banana", "cherry", "watermelon"]
     }
   },
-  "/api/2": {
 
+  "/api/bar": {
+    "statusCode": 404,
+    "body": "Get out of here"
+  },
+
+  "/api/baz/qux": {
     "headers": {
       "Content-type": "application/json",
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "X-Requested-With"
+      "Access-Control-Allow-Headers": "X-Requested-With",
+      "X-App-Token": "b4c0n"
     },
-
-    "statusCode": 201,
-
     "body": {
-      "name": "Created",
-      "data": {"user": "anonymous"}
+      "message": "Welcome to my super API."
     }
   }
 }
 ```
 
-The only required field is the `body` but you can add headers and
-use custom status codes if you want to.
+The only required field is the `body` but you can add `headers` and use a custom `statusCode` if you want to.
+
+### TODO
+
+- [ ] Watch .json file for changes and reload routes.
+- [ ] Support regular experssion for routes.
+
 
 **NOTE**
 
-This is a work in progress, which means you shouldn't expect too much for now
+This is a work in progress, which means you shouldn't expect
+too much for now, that said you're more than welcome to contribute.
 
 ---
 
