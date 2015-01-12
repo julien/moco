@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"gopkg.in/fsnotify.v1"
 	"net/http"
 	"os"
 	"strconv"
@@ -23,6 +24,7 @@ var (
 	portFlag      int
 	responsesFile *os.File
 	routes        map[string]mockResponse
+	watcher       *fsnotify.Watcher
 )
 
 func init() {
@@ -38,10 +40,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Parse the port
-	port := strconv.Itoa(portFlag)
-	fmt.Println("Port is", port)
+	mapResponses()
+	go createWatcher()
 
+	// Start server
+	fmt.Printf("Starting server on port: %v\n", portFlag)
+	http.HandleFunc("/", requestHandler)
+	http.ListenAndServe(":"+strconv.Itoa(portFlag), nil)
+}
+
+func mapResponses() {
 	responsesFile, err := getFile(fileFlag)
 	if err != nil {
 		fmt.Println("Error reading file", err)
@@ -53,17 +61,31 @@ func main() {
 	if err := json.Unmarshal([]byte(strings.Join(fileContents, "")), &routes); err != nil {
 		fmt.Printf("Error parsing JSON: %v", err)
 	}
+}
 
-	// Print routes just for debugging
-	for k, v := range routes {
-		fmt.Println(k, v)
+func createWatcher() {
+	var err error
+	watcher, err = fsnotify.NewWatcher()
+	if err != nil {
+		fmt.Printf("Watcher create error %s\n", err)
+	}
+	defer watcher.Close()
+
+	if err = watcher.Add(fileFlag); err != nil {
+		fmt.Printf("Watcher add error %s\n", err)
 	}
 
-	// Start server
-	fmt.Printf("Starting server on port: %v\n", portFlag)
-	http.HandleFunc("/", requestHandler)
-	http.ListenAndServe(":"+strconv.Itoa(portFlag), nil)
-
+	for {
+		select {
+		case ev := <-watcher.Events:
+			if ev.Op&fsnotify.Write == fsnotify.Write {
+				fmt.Printf("JSON file changed: %s\n", ev.Name)
+				mapResponses()
+			}
+		case err := <-watcher.Errors:
+			fmt.Printf("Watch error %s:\n", err)
+		}
+	}
 }
 
 func getFile(path string) (*os.File, error) {
