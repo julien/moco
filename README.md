@@ -53,8 +53,8 @@ The only required field is the `body` but you can add `headers` and use a custom
 
 ### TODO
 
-- [ ] Watch .json file for changes and reload routes.
-- [x] Support regular experssion for routes.
+- [x] Watch .json file for changes and reload routes.
+- [ ] Support regular experssion for routes.
 
 
 **NOTE**
