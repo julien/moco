@@ -14,4 +14,4 @@ test: lint
 	go test -coverprofile=$(COVFILE)
 
 cover: test
-	go tool cover -html=$(COVERFILE)
+	go tool cover -html=$(COVFILE)
