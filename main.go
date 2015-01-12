@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-    "strconv"
+	"strconv"
 	"strings"
-    "time"
+	"time"
 )
 
 type mockResponse struct {
@@ -38,9 +38,9 @@ func main() {
 		os.Exit(1)
 	}
 
-    // Parse the port
-    port := strconv.Itoa(portFlag)
-    fmt.Println("Port is", port)
+	// Parse the port
+	port := strconv.Itoa(portFlag)
+	fmt.Println("Port is", port)
 
 	responsesFile, err := getFile(fileFlag)
 	if err != nil {
@@ -51,18 +51,18 @@ func main() {
 
 	routes = make(map[string]mockResponse, 0)
 	if err := json.Unmarshal([]byte(strings.Join(fileContents, "")), &routes); err != nil {
-        fmt.Printf("Error parsing JSON: %v", err)
+		fmt.Printf("Error parsing JSON: %v", err)
 	}
 
-    // Print routes just for debugging
-    for k, v := range(routes) {
-        fmt.Println(k, v)
-    }
+	// Print routes just for debugging
+	for k, v := range routes {
+		fmt.Println(k, v)
+	}
 
 	// Start server
-    fmt.Printf("Starting server on port: %v\n", portFlag)
-    http.HandleFunc("/", requestHandler);
-    http.ListenAndServe(":" + strconv.Itoa(portFlag), nil)
+	fmt.Printf("Starting server on port: %v\n", portFlag)
+	http.HandleFunc("/", requestHandler)
+	http.ListenAndServe(":"+strconv.Itoa(portFlag), nil)
 
 }
 
@@ -105,35 +105,35 @@ func readln(r *bufio.Reader) (string, error) {
 
 func requestHandler(w http.ResponseWriter, r *http.Request) {
 
-    if mr, ok := routes[r.URL.Path]; ok {
+	if mr, ok := routes[r.URL.Path]; ok {
 
-        if mr.Body == nil {
-            http.Error(w, "No response body defined for this request", 1)
-            return
-        }
+		if mr.Body == nil {
+			http.Error(w, "No response body defined for this request", 1)
+			return
+		}
 
-        enc := json.NewEncoder(w)
-        if mr.Headers != nil {
-            for k, v := range mr.Headers {
-                w.Header().Set(k, v)
-            }
-        } else {
-            w.Header().Set("Content-Type", "application/json")
-        }
+		enc := json.NewEncoder(w)
+		if mr.Headers != nil {
+			for k, v := range mr.Headers {
+				w.Header().Set(k, v)
+			}
+		} else {
+			w.Header().Set("Content-Type", "application/json")
+		}
 
-        // Cache headers
-        age := 30 * 24 * 60 * 60 * 1000;
-        w.Header().Set("Cache-Control", "public, max-age=" + strconv.Itoa(age))
-        t := time.Now().Add(time.Duration(time.Hour * 24) * 30)
-        w.Header().Set("Expires", t.Format(time.RFC1123Z))
+		// Cache headers
+		age := 30 * 24 * 60 * 60 * 1000
+		w.Header().Set("Cache-Control", "public, max-age="+strconv.Itoa(age))
+		t := time.Now().Add(time.Duration(time.Hour*24) * 30)
+		w.Header().Set("Expires", t.Format(time.RFC1123Z))
 
-        if mr.StatusCode != 0 {
-            w.WriteHeader(mr.StatusCode)
-        } else {
-            w.WriteHeader(http.StatusOK)
-        }
+		if mr.StatusCode != 0 {
+			w.WriteHeader(mr.StatusCode)
+		} else {
+			w.WriteHeader(http.StatusOK)
+		}
 
-        enc.Encode(mr.Body)
-    }
+		enc.Encode(mr.Body)
+	}
 
 }
