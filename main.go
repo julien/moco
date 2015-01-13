@@ -4,12 +4,14 @@ import (
 	"bufio"
 	"encoding/json"
 	"flag"
-	"fmt"
+	//"fmt"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 type mockResponse struct {
@@ -22,7 +24,6 @@ var (
 	fileFlag string
 	portFlag int
 	routes   map[string]mockResponse
-	// watcher  *fsnotify.Watcher
 )
 
 func init() {
@@ -34,21 +35,18 @@ func main() {
 	flag.Parse()
 
 	if fileFlag == "" {
-		fmt.Println("No file specified. [moco -f FILENAME]")
+		color.Red("No file specified. moco -f FILENAME [-p PORT]")
 		os.Exit(1)
 	}
 
 	var err error
 	routes, err = mapResponses(fileFlag)
 	if err != nil {
-		fmt.Println("Unable to parse JSON file")
+		color.Red("Unable to parse JSON file")
 		os.Exit(1)
 	}
 
-	// go createWatcher()
-
-	// Start server
-	fmt.Printf("Starting server on port: %v\n", portFlag)
+	color.Cyan("Starting server on port: %v\n", portFlag)
 
 	http.Handle("/", requestHandler())
 	http.ListenAndServe(":"+strconv.Itoa(portFlag), nil)
@@ -57,7 +55,6 @@ func main() {
 func mapResponses(file string) (map[string]mockResponse, error) {
 	f, err := getFile(file)
 	if err != nil {
-		// fmt.Println("Error reading file", err)
 		return nil, err
 	}
 
@@ -65,7 +62,6 @@ func mapResponses(file string) (map[string]mockResponse, error) {
 
 	m := make(map[string]mockResponse, 0)
 	if err := json.Unmarshal([]byte(strings.Join(c, "")), &m); err != nil {
-		// fmt.Printf("Error parsing JSON: %v", err)
 		return nil, err
 	}
 
@@ -136,7 +132,6 @@ func requestHandler() http.Handler {
 				w.Header().Set("Content-Type", "application/json")
 			}
 
-			// Cache headers
 			age := 30 * 24 * 60 * 60 * 1000
 			w.Header().Set("Cache-Control", "public, max-age="+strconv.Itoa(age))
 			t := time.Now().Add(time.Duration(time.Hour*24) * 30)

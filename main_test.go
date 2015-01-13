@@ -41,7 +41,7 @@ func TestGetFileNoFile(t *testing.T) {
 }
 
 func TestReadFileOK(t *testing.T) {
-	f, e := getFile("./fixtures.txt")
+	f, e := getFile("./fixtures/fixtures.txt")
 	if e != nil {
 		t.Errorf("got error %v", e)
 	}
@@ -55,7 +55,7 @@ func TestReadFileOK(t *testing.T) {
 }
 
 func TestMapResponsesOK(t *testing.T) {
-	m, err := mapResponses("./example.json")
+	m, err := mapResponses("./fixtures/example.json")
 	if err != nil {
 		t.Errorf("got %v", err)
 	}
@@ -73,7 +73,7 @@ func TestMapResponsesNoFile(t *testing.T) {
 }
 
 func TestMapResponsesBadJSON(t *testing.T) {
-	m, err := mapResponses("./invalid.json")
+	m, err := mapResponses("./fixtures/invalid.json")
 	if err == nil {
 		t.Errorf("got %v expect error", err)
 	}
@@ -85,7 +85,7 @@ func TestMapResponsesBadJSON(t *testing.T) {
 
 func TestRequestHandlerKO(t *testing.T) {
 
-	_, err := mapResponses("./example.json")
+	_, err := mapResponses("./fixtures/example.json")
 	if err != nil {
 		t.Errorf("got %v", err)
 	}
@@ -103,7 +103,7 @@ func TestRequestHandlerKO(t *testing.T) {
 
 func TestRequestHandlerOK(t *testing.T) {
 
-	_, err := mapResponses("./example.json")
+	_, err := mapResponses("./fixtures/example.json")
 	if err != nil {
 		t.Errorf("got %v", err)
 	}
@@ -124,7 +124,7 @@ func TestRequestHandlerOK(t *testing.T) {
 func TestRequestHandlerNoBody(t *testing.T) {
 
 	handle := requestHandler()
-	fileFlag = "./nobody.json"
+	fileFlag = "./fixtures/nobody.json"
 	req, _ := http.NewRequest("GET", "/api/1", nil)
 	w := httptest.NewRecorder()
 
