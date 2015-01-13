@@ -4,9 +4,23 @@ import (
 	// "fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 )
+
+func TestMain(m *testing.M) {
+
+	var t *testing.T
+	if fileFlag != "" {
+		t.Errorf("got %v expected ", fileFlag)
+	}
+
+	if portFlag != 8000 {
+		t.Errorf("got %v expected 8000", portFlag)
+	}
+	os.Exit(m.Run())
+}
 
 func TestGetFileOK(t *testing.T) {
 	f, e := getFile("./main.go")
