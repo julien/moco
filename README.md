@@ -35,7 +35,7 @@ The json file should respect this structure:
     "body": "Get out of here"
   },
 
-  "/api/baz/qux": {
+  "/api/baz/\\d{1,2}/profile": {
     "headers": {
       "Content-type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -51,8 +51,7 @@ The json file should respect this structure:
 
 The only required field is the `body` but you can add `headers` and use a custom `statusCode` if you want to.
 
-
-- [ ] Support regular experssion for routes.
+Regular expressions are supported although quite limited.
 
 
 **NOTE**
