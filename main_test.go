@@ -1,6 +1,9 @@
 package main
 
 import (
+	// "fmt"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -48,6 +51,24 @@ func TestMapResponsesOK(t *testing.T) {
 	}
 }
 
+func TestRequestHandler(t *testing.T) {
+
+	_, err := mapResponses("./example.json")
+	if err != nil {
+		t.Errorf("got %v", err)
+	}
+
+	handle := requestHandler()
+	req, err := http.NewRequest("GET", "/api/1", nil)
+	w := httptest.NewRecorder()
+
+	handle.ServeHTTP(w, req)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("got %v want 500", w.Code)
+	}
+}
+
 func TestMapResponsesNoFile(t *testing.T) {
 	_, err := mapResponses("./nofile")
 	if err == nil {
@@ -58,7 +79,7 @@ func TestMapResponsesNoFile(t *testing.T) {
 func TestMapResponsesBadJSON(t *testing.T) {
 	m, err := mapResponses("./invalid.json")
 	if err == nil {
-		t.Errorf("got %v", err)
+		t.Errorf("got %v expect error", err)
 	}
 
 	if _, ok := m["/api/1"]; ok {

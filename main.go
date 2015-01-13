@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"gopkg.in/fsnotify.v1"
 	"net/http"
 	"os"
 	"strconv"
@@ -23,7 +22,7 @@ var (
 	fileFlag string
 	portFlag int
 	routes   map[string]mockResponse
-	watcher  *fsnotify.Watcher
+	// watcher  *fsnotify.Watcher
 )
 
 func init() {
@@ -46,11 +45,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	go createWatcher()
+	// go createWatcher()
 
 	// Start server
 	fmt.Printf("Starting server on port: %v\n", portFlag)
-	http.HandleFunc("/", requestHandler)
+
+	http.Handle("/", requestHandler())
 	http.ListenAndServe(":"+strconv.Itoa(portFlag), nil)
 }
 
@@ -70,37 +70,6 @@ func mapResponses(file string) (map[string]mockResponse, error) {
 	}
 
 	return m, err
-}
-
-func createWatcher() (*fsnotify.Watcher, error) {
-	var err error
-	watcher, err = fsnotify.NewWatcher()
-	if err != nil {
-		fmt.Printf("Watcher create error %s\n", err)
-		return nil, err
-	}
-	defer watcher.Close()
-
-	if err = watcher.Add(fileFlag); err != nil {
-		fmt.Printf("Watcher add error %s\n", err)
-		return nil, err
-	}
-
-	for {
-		select {
-		case ev := <-watcher.Events:
-			if ev.Op&fsnotify.Write == fsnotify.Write {
-				fmt.Printf("JSON file changed: %s\n", ev.Name)
-
-				routes, _ = mapResponses(fileFlag)
-
-			}
-		case err := <-watcher.Errors:
-			fmt.Printf("Watch error %s:\n", err)
-		}
-	}
-
-	return watcher, nil
 }
 
 func getFile(path string) (*os.File, error) {
@@ -140,37 +109,47 @@ func readln(r *bufio.Reader) (string, error) {
 	return string(ln), err
 }
 
-func requestHandler(w http.ResponseWriter, r *http.Request) {
+func requestHandler() http.Handler {
 
-	if mr, ok := routes[r.URL.Path]; ok {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var err error
+		routes, err = mapResponses(fileFlag)
 
-		if mr.Body == nil {
-			http.Error(w, "No response body defined for this request", http.StatusBadRequest)
+		if err != nil {
+			http.Error(w, "Error parsing JSON file", http.StatusInternalServerError)
 			return
 		}
 
-		enc := json.NewEncoder(w)
-		if mr.Headers != nil {
-			for k, v := range mr.Headers {
-				w.Header().Set(k, v)
+		if mr, ok := routes[r.URL.Path]; ok {
+
+			if mr.Body == nil {
+				http.Error(w, "No response body defined for this request", http.StatusBadRequest)
+				return
 			}
-		} else {
-			w.Header().Set("Content-Type", "application/json")
+
+			enc := json.NewEncoder(w)
+			if mr.Headers != nil {
+				for k, v := range mr.Headers {
+					w.Header().Set(k, v)
+				}
+			} else {
+				w.Header().Set("Content-Type", "application/json")
+			}
+
+			// Cache headers
+			age := 30 * 24 * 60 * 60 * 1000
+			w.Header().Set("Cache-Control", "public, max-age="+strconv.Itoa(age))
+			t := time.Now().Add(time.Duration(time.Hour*24) * 30)
+			w.Header().Set("Expires", t.Format(time.RFC1123Z))
+
+			if mr.StatusCode != 0 {
+				w.WriteHeader(mr.StatusCode)
+			} else {
+				w.WriteHeader(http.StatusOK)
+			}
+
+			enc.Encode(mr.Body)
+
 		}
-
-		// Cache headers
-		age := 30 * 24 * 60 * 60 * 1000
-		w.Header().Set("Cache-Control", "public, max-age="+strconv.Itoa(age))
-		t := time.Now().Add(time.Duration(time.Hour*24) * 30)
-		w.Header().Set("Expires", t.Format(time.RFC1123Z))
-
-		if mr.StatusCode != 0 {
-			w.WriteHeader(mr.StatusCode)
-		} else {
-			w.WriteHeader(http.StatusOK)
-		}
-
-		enc.Encode(mr.Body)
-	}
-
+	})
 }
