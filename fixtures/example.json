@@ -29,5 +29,20 @@
       "Content-Type": "text/html"
     },
     "statusCode": 500
+  },
+  "/api/user/\\d{1,3}/profile": {
+    "headers": {
+      "Content-type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "X-Requested-With"
+    },
+    "statusCode": 200,
+    "body": {
+      "name": "Looser User",
+      "data": {
+        "id": 12345,
+        "score": 500
+      }
+    }
   }
 }

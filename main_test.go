@@ -115,8 +115,8 @@ func TestRequestHandlerOK(t *testing.T) {
 
 	handle.ServeHTTP(w, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("got %v want 200", w.Code)
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("got %v want 500", w.Code)
 
 	}
 }

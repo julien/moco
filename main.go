@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"encoding/json"
 	"flag"
-	//"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +24,7 @@ var (
 	fileFlag string
 	portFlag int
 	routes   map[string]mockResponse
+	regs     []*regexp.Regexp
 )
 
 func init() {
@@ -46,10 +47,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	color.Cyan("Starting server on port: %v\n", portFlag)
+	// regs := makePatterns(routes)
 
+	color.Cyan("Starting server on port: %v\n", portFlag)
 	http.Handle("/", requestHandler())
 	http.ListenAndServe(":"+strconv.Itoa(portFlag), nil)
+}
+
+func makePatterns(routes map[string]mockResponse) []*regexp.Regexp {
+	var out []*regexp.Regexp
+	for k := range routes {
+		r := regexp.MustCompile(k)
+		out = append(out, r)
+	}
+	return out
 }
 
 func mapResponses(file string) (map[string]mockResponse, error) {
@@ -108,15 +119,34 @@ func readln(r *bufio.Reader) (string, error) {
 func requestHandler() http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// "reload" json file
 		var err error
 		routes, err = mapResponses(fileFlag)
-
 		if err != nil {
 			http.Error(w, "Error parsing JSON file", http.StatusInternalServerError)
 			return
 		}
+		regs = makePatterns(routes)
 
-		if mr, ok := routes[r.URL.Path]; ok {
+		// check if path matches
+		var mr mockResponse
+		var found bool
+
+		for i := 0; i < len(regs); i++ {
+			match := regs[i].FindAllString(r.URL.Path, -1)
+			if len(match) > 0 && !found {
+				found = true
+				mr = routes[regs[i].String()]
+			}
+		}
+
+		if _, ok := routes[r.URL.Path]; ok && !found {
+			found = true
+			mr = routes[r.URL.Path]
+		}
+
+		if found {
 
 			if mr.Body == nil {
 				http.Error(w, "No response body defined for this request", http.StatusBadRequest)
@@ -145,6 +175,8 @@ func requestHandler() http.Handler {
 
 			enc.Encode(mr.Body)
 
+		} else {
+			http.Error(w, "Not found", http.StatusNotFound)
 		}
 	})
 }
