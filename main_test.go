@@ -51,7 +51,25 @@ func TestMapResponsesOK(t *testing.T) {
 	}
 }
 
-func TestRequestHandler(t *testing.T) {
+func TestMapResponsesNoFile(t *testing.T) {
+	_, err := mapResponses("./nofile")
+	if err == nil {
+		t.Errorf("got %v expected an error", err)
+	}
+}
+
+func TestMapResponsesBadJSON(t *testing.T) {
+	m, err := mapResponses("./invalid.json")
+	if err == nil {
+		t.Errorf("got %v expect error", err)
+	}
+
+	if _, ok := m["/api/1"]; ok {
+		t.Errorf("got %v expected error", ok)
+	}
+}
+
+func TestRequestHandlerKO(t *testing.T) {
 
 	_, err := mapResponses("./example.json")
 	if err != nil {
@@ -69,20 +87,41 @@ func TestRequestHandler(t *testing.T) {
 	}
 }
 
-func TestMapResponsesNoFile(t *testing.T) {
-	_, err := mapResponses("./nofile")
-	if err == nil {
-		t.Errorf("got %v expected an error", err)
+func TestRequestHandlerOK(t *testing.T) {
+
+	_, err := mapResponses("./example.json")
+	if err != nil {
+		t.Errorf("got %v", err)
+	}
+
+	handle := requestHandler()
+	fileFlag = "./example.json"
+	req, err := http.NewRequest("GET", "/api/1", nil)
+	w := httptest.NewRecorder()
+
+	handle.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("got %v want 200", w.Code)
+
 	}
 }
 
-func TestMapResponsesBadJSON(t *testing.T) {
-	m, err := mapResponses("./invalid.json")
-	if err == nil {
-		t.Errorf("got %v expect error", err)
+func TestRequestHandlerNoBody(t *testing.T) {
+
+	handle := requestHandler()
+	fileFlag = "./nobody.json"
+	req, _ := http.NewRequest("GET", "/api/1", nil)
+	w := httptest.NewRecorder()
+
+	handle.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("got %v want 403", w.Code)
+
 	}
 
-	if _, ok := m["/api/1"]; ok {
-		t.Errorf("got %v expected error", ok)
+	if w.Header()["Content-Type"][0] != "text/plain; charset=utf-8" {
+		t.Errorf("got %v wanted text/plain; charset=utf-8", w.Header()["Content-Type"])
 	}
 }

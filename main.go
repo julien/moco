@@ -57,7 +57,7 @@ func main() {
 func mapResponses(file string) (map[string]mockResponse, error) {
 	f, err := getFile(file)
 	if err != nil {
-		fmt.Println("Error reading file", err)
+		// fmt.Println("Error reading file", err)
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func mapResponses(file string) (map[string]mockResponse, error) {
 
 	m := make(map[string]mockResponse, 0)
 	if err := json.Unmarshal([]byte(strings.Join(c, "")), &m); err != nil {
-		fmt.Printf("Error parsing JSON: %v", err)
+		// fmt.Printf("Error parsing JSON: %v", err)
 		return nil, err
 	}
 
