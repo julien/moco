@@ -1,13 +1,9 @@
 moco
 ----
 
-*mocos* means "snot" in spanish, and this is
-what you can probably expect from this code.
-
 **moco** let's you "mock" http requests easily, you just need to pass a json file to the progam.
 
 `moco -f FILENAME [-p PORT]`
-
 
 The `-f` flag is mandatory and the `-p` flag is optional.
 
@@ -15,7 +11,7 @@ The json file should respect this structure:
 
 *example*
 
-```
+```json
 {
   "/api/foo": {
     "headers": {
@@ -25,14 +21,14 @@ The json file should respect this structure:
     },
     "statusCode": 200,
     "body": {
-      title: "Some cool stuff",
-      items: ["apple", "banana", "cherry", "watermelon"]
+      "title": "Some cool stuff",
+      "items": ["apple", "banana", "cherry", "watermelon"]
     }
   },
 
   "/api/bar": {
     "statusCode": 404,
-    "body": "Get out of here"
+    "body": "Nothing found here"
   },
 
   "/api/baz/\\d{1,2}/profile": {
