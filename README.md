@@ -1,6 +1,3 @@
-moco
-----
-
 **moco** let's you "mock" http requests easily, you just need to pass a json file to the progam.
 
 `moco -f FILENAME [-p PORT]`
