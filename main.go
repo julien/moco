@@ -129,9 +129,15 @@ func requestHandler(file string) http.Handler {
 		}
 
 		if found {
+			var sc int
+			if mr.StatusCode > 0 {
+				sc = mr.StatusCode
+			} else {
+				sc = http.StatusOK
+			}
 
 			if mr.Body == nil {
-				http.Error(w, "No response body defined for this request", http.StatusBadRequest)
+				w.WriteHeader(sc)
 				return
 			}
 

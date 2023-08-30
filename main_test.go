@@ -93,7 +93,6 @@ func TestRequestHandlerOK(t *testing.T) {
 }
 
 func TestRequestHandlerNoBody(t *testing.T) {
-
 	file := "./fixtures/nobody.json"
 	handle := requestHandler(file)
 	req, _ := http.NewRequest("GET", "/api/1", nil)
@@ -101,11 +100,7 @@ func TestRequestHandlerNoBody(t *testing.T) {
 
 	handle.ServeHTTP(w, req)
 
-	if w.Code != http.StatusBadRequest {
+	if w.Code != http.StatusOK {
 		t.Errorf("got %v want 403", w.Code)
-	}
-
-	if w.Header()["Content-Type"][0] != "text/plain; charset=utf-8" {
-		t.Errorf("got %v wanted text/plain; charset=utf-8", w.Header()["Content-Type"])
 	}
 }
