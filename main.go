@@ -20,38 +20,24 @@ type mockResponse struct {
 	Body       map[string]interface{} `json:"body"`
 }
 
-var (
-	fileFlag string
-	portFlag int
-	routes   map[string]mockResponse
-	regs     []*regexp.Regexp
-)
-
-func init() {
-	flag.StringVar(&fileFlag, "f", "", "JSON file to be parsed")
-	flag.IntVar(&portFlag, "p", 8000, "Port to be used")
-}
-
 func main() {
+	var (
+		file string
+		port int
+	)
+
+	flag.StringVar(&file, "f", "", "JSON file to be parsed")
+	flag.IntVar(&port, "p", 8000, "Port to be used")
 	flag.Parse()
 
-	if fileFlag == "" {
+	if file == "" {
 		color.Red("No file specified. moco -f FILENAME [-p PORT]")
 		os.Exit(1)
 	}
 
-	var err error
-	routes, err = mapResponses(fileFlag)
-	if err != nil {
-		color.Red("Unable to parse JSON file")
-		os.Exit(1)
-	}
-
-	// regs := makePatterns(routes)
-
-	color.Cyan("Starting server on port: %v\n", portFlag)
-	http.Handle("/", requestHandler())
-	http.ListenAndServe(":"+strconv.Itoa(portFlag), nil)
+	color.Cyan("Starting server on port: %v\n", port)
+	http.Handle("/", requestHandler(file))
+	http.ListenAndServe(":"+strconv.Itoa(port), nil)
 }
 
 func makePatterns(routes map[string]mockResponse) []*regexp.Regexp {
@@ -116,18 +102,15 @@ func readln(r *bufio.Reader) (string, error) {
 	return string(ln), err
 }
 
-func requestHandler() http.Handler {
-
+func requestHandler(file string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		// "reload" json file
-		var err error
-		routes, err = mapResponses(fileFlag)
+		routes, err := mapResponses(file)
 		if err != nil {
 			http.Error(w, "Error parsing JSON file", http.StatusInternalServerError)
 			return
 		}
-		regs = makePatterns(routes)
+		regs := makePatterns(routes)
 
 		// check if path matches
 		var mr mockResponse

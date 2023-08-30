@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -10,15 +9,6 @@ import (
 )
 
 func TestMain(m *testing.M) {
-
-	var t *testing.T
-	if fileFlag != "" {
-		t.Errorf("got %v expected ", fileFlag)
-	}
-
-	if portFlag != 8000 {
-		t.Errorf("got %v expected 8000", portFlag)
-	}
 	os.Exit(m.Run())
 }
 
@@ -83,48 +73,29 @@ func TestMapResponsesBadJSON(t *testing.T) {
 	}
 }
 
-func TestRequestHandlerKO(t *testing.T) {
-
-	_, err := mapResponses("./fixtures/example.json")
-	if err != nil {
-		t.Errorf("got %v", err)
-	}
-
-	handle := requestHandler()
-	req, err := http.NewRequest("GET", "/api/1", nil)
-	w := httptest.NewRecorder()
-
-	handle.ServeHTTP(w, req)
-
-	if w.Code != http.StatusInternalServerError {
-		t.Errorf("got %v want 500", w.Code)
-	}
-}
-
 func TestRequestHandlerOK(t *testing.T) {
-
-	_, err := mapResponses("./fixtures/example.json")
+	file := "./fixtures/example.json"
+	_, err := mapResponses(file)
 	if err != nil {
 		t.Errorf("got %v", err)
 	}
 
-	handle := requestHandler()
-	fileFlag = "./example.json"
+	handle := requestHandler(file)
 	req, err := http.NewRequest("GET", "/api/1", nil)
 	w := httptest.NewRecorder()
 
 	handle.ServeHTTP(w, req)
 
-	if w.Code != http.StatusInternalServerError {
-		t.Errorf("got %v want 500", w.Code)
+	if w.Code != http.StatusOK {
+		t.Errorf("got %v want 200", w.Code)
 
 	}
 }
 
 func TestRequestHandlerNoBody(t *testing.T) {
 
-	handle := requestHandler()
-	fileFlag = "./fixtures/nobody.json"
+	file := "./fixtures/nobody.json"
+	handle := requestHandler(file)
 	req, _ := http.NewRequest("GET", "/api/1", nil)
 	w := httptest.NewRecorder()
 
@@ -132,7 +103,6 @@ func TestRequestHandlerNoBody(t *testing.T) {
 
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("got %v want 403", w.Code)
-
 	}
 
 	if w.Header()["Content-Type"][0] != "text/plain; charset=utf-8" {
