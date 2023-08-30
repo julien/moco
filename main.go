@@ -149,8 +149,6 @@ func requestHandler(file string) http.Handler {
 				for k, v := range mr.Headers {
 					w.Header().Set(k, v)
 				}
-			} else {
-				w.Header().Set("Content-Type", "application/json")
 			}
 
 			age := 30 * 24 * 60 * 60 * 1000
