@@ -2,15 +2,12 @@ SHELL := /bin/bash
 COVFILE := cover.out
 
 fmt:
-	go fmt
+	gofmt -w *.go
 
-lint: fmt
-	golint *.go
-
-vet: lint
+vet: fmt
 	go vet
 
-test: lint
+test: fmt
 	go test -coverprofile=$(COVFILE)
 
 cover: test
