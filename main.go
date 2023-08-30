@@ -148,7 +148,6 @@ func requestHandler(file string) http.Handler {
 				return
 			}
 
-			enc := json.NewEncoder(w)
 			if mr.Headers != nil {
 				for k, v := range mr.Headers {
 					w.Header().Set(k, v)
@@ -160,12 +159,9 @@ func requestHandler(file string) http.Handler {
 			t := time.Now().Add(time.Duration(time.Hour*24) * 30)
 			w.Header().Set("Expires", t.Format(time.RFC1123Z))
 
-			if mr.StatusCode != 0 {
-				w.WriteHeader(mr.StatusCode)
-			} else {
-				w.WriteHeader(http.StatusOK)
-			}
+			w.WriteHeader(sc)
 
+			enc := json.NewEncoder(w)
 			enc.Encode(mr.Body)
 
 		} else {
