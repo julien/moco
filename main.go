@@ -73,10 +73,14 @@ func getFile(path string) (*os.File, error) {
 }
 
 func readFile(f *os.File) []string {
-
-	r := bufio.NewReader(f)
-	s, e := readln(r)
-	var t []string
+	var (
+		r *bufio.Reader
+		s string
+		e error
+		t []string
+	)
+	r = bufio.NewReader(f)
+	s, e = readln(r)
 
 	for e == nil {
 		s = strings.Trim(s, " \n\t\r")
