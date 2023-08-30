@@ -103,7 +103,6 @@ func readln(r *bufio.Reader) (string, error) {
 
 func requestHandler(file string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// "reload" json file
 		routes, err := mapResponses(file)
 		if err != nil {
 			http.Error(w, "Error parsing JSON file", http.StatusInternalServerError)
@@ -111,7 +110,6 @@ func requestHandler(file string) http.Handler {
 		}
 		regs := makePatterns(routes)
 
-		// check if path matches
 		var mr mockResponse
 		var found bool
 
