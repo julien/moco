@@ -4,14 +4,13 @@ import (
 	"bufio"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"net/http"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/fatih/color"
 )
 
 type mockResponse struct {
@@ -31,11 +30,11 @@ func main() {
 	flag.Parse()
 
 	if file == "" {
-		color.Red("No file specified. moco -f FILENAME [-p PORT]")
+		fmt.Fprint(os.Stderr, "No file specified. moco -f FILENAME [-p PORT]\n")
 		os.Exit(1)
 	}
 
-	color.Cyan("Starting server on port: %v\n", port)
+	fmt.Fprintf(os.Stdout, "Starting server on port: %d\n", port)
 	http.Handle("/", requestHandler(file))
 	http.ListenAndServe(":"+strconv.Itoa(port), nil)
 }
