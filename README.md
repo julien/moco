@@ -1,13 +1,10 @@
 **moco** let's you "mock" http requests easily, you just need to pass a json file to the progam.
 
-`moco -f FILENAME [-p PORT]`
+`moco [-f FILENAME] [-p PORT]`
 
-The `-f` flag is mandatory and the `-p` flag is optional.
+Both the `-f` flag and the `-p` flag are optional.
 
-The json file should respect this structure:
-
-*example*
-
+If you use the `-p` flag to specify a JSON file, it should have this structure:
 ```json
 {
   "/api/foo": {
@@ -41,10 +38,10 @@ The json file should respect this structure:
   }
 }
 ```
-
-The only required field is the `body` but you can add `headers` and use a custom `statusCode` if you want to.
-
+All fields are optional.
 Regular expressions are supported although quite limited.
+
+If no flags are passed, `moco` will return a 200 status code for any request.
 
 
 **NOTE**
