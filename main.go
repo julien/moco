@@ -29,11 +29,6 @@ func main() {
 	flag.IntVar(&port, "p", 8000, "Port to be used")
 	flag.Parse()
 
-	if file == "" {
-		fmt.Fprint(os.Stderr, "No file specified. moco -f FILENAME [-p PORT]\n")
-		os.Exit(1)
-	}
-
 	fmt.Fprintf(os.Stdout, "Starting server on port: %d\n", port)
 	http.Handle("/", requestHandler(file))
 	http.ListenAndServe(":"+strconv.Itoa(port), nil)
@@ -106,14 +101,21 @@ func readln(r *bufio.Reader) (string, error) {
 }
 
 func requestHandler(file string) http.Handler {
+	withFile := len(strings.TrimSpace(file)) > 0
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
-			routes map[string]mockResponse
-			err    error
 			regs   []*regexp.Regexp
 			mr     mockResponse
+			routes map[string]mockResponse
+			err    error
 			found  bool
 		)
+
+		if !withFile {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 
 		routes, err = mapResponses(file)
 		if err != nil {
@@ -128,11 +130,6 @@ func requestHandler(file string) http.Handler {
 				found = true
 				mr = routes[regs[i].String()]
 			}
-		}
-
-		if _, ok := routes[r.URL.Path]; ok && !found {
-			found = true
-			mr = routes[r.URL.Path]
 		}
 
 		if found {
@@ -160,7 +157,6 @@ func requestHandler(file string) http.Handler {
 			w.Header().Set("Expires", t.Format(time.RFC1123Z))
 
 			w.WriteHeader(sc)
-
 			enc := json.NewEncoder(w)
 			enc.Encode(mr.Body)
 

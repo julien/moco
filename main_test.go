@@ -88,7 +88,6 @@ func TestRequestHandlerOK(t *testing.T) {
 
 	if w.Code != http.StatusOK {
 		t.Errorf("got %v want 200", w.Code)
-
 	}
 }
 
@@ -102,5 +101,30 @@ func TestRequestHandlerNoBody(t *testing.T) {
 
 	if w.Code != http.StatusOK {
 		t.Errorf("got %v want 403", w.Code)
+	}
+}
+
+func TestRequestHandlerNoFile(t *testing.T) {
+	handle := requestHandler("")
+	req, _ := http.NewRequest("GET", "/api/1", nil)
+	w := httptest.NewRecorder()
+
+	handle.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("got %v want 200", w.Code)
+	}
+}
+
+func TestRequestHandlerNotFound(t *testing.T) {
+	file := "./fixtures/nobody.json"
+	handle := requestHandler(file)
+	req, _ := http.NewRequest("GET", "/api/2", nil)
+	w := httptest.NewRecorder()
+
+	handle.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("got %v want 404", w.Code)
 	}
 }
