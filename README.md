@@ -1,10 +1,14 @@
-**moco** let's you "mock" http requests easily, you just need to pass a json file to the progam.
+**moco** let's you "mock" HTTP requests easily.
+
+usage:
 
 `moco [-f FILENAME] [-p PORT]`
 
+Will start an HTTP server listening on the port specified by the `-p` flag or port 8000 by default.
+
 Both the `-f` flag and the `-p` flag are optional.
 
-If you use the `-p` flag to specify a JSON file, it should have this structure:
+You can use the `-p` flag to specify a JSON file that define "routes/endpoints" and it should have this structure:
 ```json
 {
   "/api/foo": {
@@ -42,7 +46,6 @@ All fields are optional.
 Regular expressions are supported although quite limited.
 
 If no flags are passed, `moco` will return a 200 status code for any request.
-
 
 **NOTE**
 
