@@ -8,7 +8,7 @@ vet: fmt
 	go vet
 
 test: fmt
-	go test -coverprofile=$(COVFILE)
+	go test -coverprofile=$(COVFILE) -p 1 -race
 
 cover: test
 	go tool cover -html=$(COVFILE)
